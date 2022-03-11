@@ -15,7 +15,7 @@ class User(models.Model):
     google_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
     image_url = models.URLField()
-    favourite_artists = models.ManyToManyField(Artist)
+    favourite_artists = models.ManyToManyField(Artist, related_name='favourite_users')
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self) -> str:
