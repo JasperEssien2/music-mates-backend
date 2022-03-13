@@ -1,4 +1,5 @@
 import graphene
+from django.db.models import Q
 from graphene_django import DjangoObjectType
 
 from .models import Artist, User
@@ -35,6 +36,14 @@ class Query(graphene.ObjectType):
 
     def resolve_user_info(root, info, google_id):
         return User.objects.get(google_id=google_id)
+
+    music_mates = graphene.List(UserType, args={'user_id': graphene.Int()})
+
+    def resolve_music_mates(root, info, user_id):
+        favourite_artist = Artist.objects.filter(
+            favourite_users__id=user_id)
+
+        return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(pk=user_id))
 
 
 class UserMutation(graphene.Mutation):
