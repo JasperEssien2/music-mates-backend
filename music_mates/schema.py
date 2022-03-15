@@ -26,24 +26,24 @@ class Query(graphene.ObjectType):
         return Artist.objects.all()
 
     user_favourite_artist = graphene.List(
-        ArtistType, args={'user_id': graphene.Int()})
+        ArtistType, args={'google_id': graphene.String()})
 
-    def resolve_user_favourite_artist(root, info, user_id):
+    def resolve_user_favourite_artist(root, info, google_id):
 
-        return Artist.objects.filter(favourite_users__id=user_id)
+        return Artist.objects.filter(favourite_users__google_id=google_id)
 
     user_info = graphene.Field(UserType, google_id=graphene.String())
 
     def resolve_user_info(root, info, google_id):
         return User.objects.get(google_id=google_id)
 
-    music_mates = graphene.List(UserType, args={'user_id': graphene.Int()})
+    music_mates = graphene.List(UserType, args={'google_id': graphene.String()})
 
-    def resolve_music_mates(root, info, user_id):
+    def resolve_music_mates(root, info, google_id):
         favourite_artist = Artist.objects.filter(
-            favourite_users__id=user_id)
+            favourite_users__google_id=google_id)
 
-        return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(pk=user_id))
+        return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(google_id=google_id))
 
 
 class UserMutation(graphene.Mutation):
