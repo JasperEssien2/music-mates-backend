@@ -1,6 +1,6 @@
 import graphene
 from django.db.models import Q
-from graphene_django import DjangoObjectType
+from graphene_django import DjangoObjectType, DjangoListField
 
 from .models import Artist, User
 
@@ -20,10 +20,8 @@ class UserType(DjangoObjectType):
 
 class Query(graphene.ObjectType):
 
-    all_artists = graphene.List(ArtistType)
+    all_artists = DjangoListField(ArtistType)
 
-    def resolve_all_artists(root, info):
-        return Artist.objects.all()
 
     user_favourite_artist = graphene.List(
         ArtistType, args={'google_id': graphene.String()})
