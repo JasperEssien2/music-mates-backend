@@ -1,6 +1,6 @@
 import graphene
 from django.db.models import Q
-from graphene_django import DjangoObjectType, DjangoListField
+from graphene_django import DjangoListField, DjangoObjectType
 
 from .models import Artist, User
 
@@ -22,7 +22,6 @@ class Query(graphene.ObjectType):
 
     all_artists = DjangoListField(ArtistType)
 
-
     user_favourite_artist = graphene.List(
         ArtistType, args={'google_id': graphene.String()})
 
@@ -35,13 +34,14 @@ class Query(graphene.ObjectType):
     def resolve_user_info(root, info, google_id):
         return User.objects.get(google_id=google_id)
 
-    music_mates = graphene.List(UserType, args={'google_id': graphene.String()})
+    music_mates = graphene.List(
+        UserType, args={'google_id': graphene.String()})
 
     def resolve_music_mates(root, info, google_id):
         favourite_artist = Artist.objects.filter(
             favourite_users__google_id=google_id)
 
-        return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(google_id=google_id))
+        return User.objects.filter(favourite_artists__in=favourite_artist).distinct()
 
 
 class UserMutation(graphene.Mutation):
@@ -60,6 +60,7 @@ class UserMutation(graphene.Mutation):
 
         user = User(
             name=kwargs['name'], google_id=kwargs['google_id'], image_url=kwargs['image_url'])
+
         user.save()
 
         user.favourite_artists.set(artists)
