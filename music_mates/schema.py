@@ -41,7 +41,7 @@ class Query(graphene.ObjectType):
         favourite_artist = Artist.objects.filter(
             favourite_users__google_id=google_id)
 
-        return User.objects.filter(favourite_artists__in=favourite_artist).distinct()
+        return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(google_id = google_id)).distinct()
 
 
 class CreateUserMutation(graphene.Mutation):
