@@ -44,23 +44,25 @@ class Query(graphene.ObjectType):
         return User.objects.filter(favourite_artists__in=favourite_artist).distinct()
 
 
-class UserMutation(graphene.Mutation):
+class CreateUserMutation(graphene.Mutation):
 
     class Arguments:
         name = graphene.String(required=True)
         google_id = graphene.String(required=True)
         image_url = graphene.String(required=True)
         favourite_artists = graphene.List(graphene.ID)
+        is_update = graphene.Boolean()
 
     user = graphene.Field(UserType)
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
 
-        user = User.objects.get(google_id=kwargs['google_id'])
-        if user == None:
-            artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
+        exisiting_user = User.objects.get(google_id=kwargs['google_id'])
 
+        artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
+
+        if exisiting_user == None:
             user = User(
                 name=kwargs['name'], google_id=kwargs['google_id'], image_url=kwargs['image_url'])
 
@@ -68,14 +70,48 @@ class UserMutation(graphene.Mutation):
 
             user.favourite_artists.set(artists)
 
-            return UserMutation(user=user)
+            return CreateUserMutation(user=user)
+
         else:
-            return user
+            return CreateUserMutation(user=exisiting_user)
+
+
+class UpdateUserMutation(graphene.Mutation):
+
+    class Arguments:
+        name = graphene.String(required=False)
+        google_id = graphene.String(required=True)
+        image_url = graphene.String(required=False)
+        favourite_artists = graphene.List(graphene.ID)
+
+    user = graphene.Field(UserType)
+
+    @classmethod
+    def mutate(cls, root, info, **kwargs):
+
+        exisiting_user = User.objects.get(google_id=kwargs['google_id'])
+
+        artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
+
+        exisiting_user.favourite_artists.set(artists)
+
+        if(kwargs['name'] != None):
+            exisiting_user.name = kwargs['name']
+
+        if(kwargs['image_url'] != None):
+            exisiting_user.image_url = kwargs['image_url']
+
+        exisiting_user.save()
+
+        return UpdateUserMutation(user=exisiting_user)
+
 
 
 class Mutation(graphene.ObjectType):
 
-    create_user = UserMutation.Field()
+    create_user = CreateUserMutation.Field()
+
+    update_user = UpdateUserMutation.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
