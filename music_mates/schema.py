@@ -76,6 +76,7 @@ class CreateUserMutation(graphene.Mutation):
 class UpdateUserMutation(graphene.Mutation):
 
     class Arguments:
+        name = graphene.String()
         google_id = graphene.String(required=True)
         image_url = graphene.String()
         favourite_artists = graphene.List(graphene.ID)
@@ -90,12 +91,19 @@ class UpdateUserMutation(graphene.Mutation):
         artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
 
         exisiting_user.favourite_artists.set(artists)
+        
+        try:
+            if(kwargs['name'] != None):
+                exisiting_user.name = kwargs['name']
+        except:
+            pass
 
-        if(kwargs['name'] != None):
-            exisiting_user.name = kwargs['name']
-
-        if(kwargs['image_url'] != None):
-            exisiting_user.image_url = kwargs['image_url']
+        try:
+            if(kwargs['image_url'] != None):
+                exisiting_user.image_url = kwargs['image_url']
+        except:
+            pass
+        
 
         exisiting_user.save()
 
