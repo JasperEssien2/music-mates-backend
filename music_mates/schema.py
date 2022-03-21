@@ -76,9 +76,9 @@ class CreateUserMutation(graphene.Mutation):
 class UpdateUserMutation(graphene.Mutation):
 
     class Arguments:
-        name = graphene.String(required=False)
+        name = graphene.String()
         google_id = graphene.String(required=True)
-        image_url = graphene.String(required=False)
+        image_url = graphene.String()
         favourite_artists = graphene.List(graphene.ID)
 
     user = graphene.Field(UserType)
