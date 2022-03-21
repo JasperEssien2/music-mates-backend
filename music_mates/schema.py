@@ -57,23 +57,20 @@ class CreateUserMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
+        try:
+            exisiting_user = User.objects.get(google_id=kwargs['google_id'])
 
-        exisiting_user = User.objects.get(google_id=kwargs['google_id'])
-
-        artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
-
-        if exisiting_user == None:
+            return CreateUserMutation(user=exisiting_user)
+        except:
             user = User(
                 name=kwargs['name'], google_id=kwargs['google_id'], image_url=kwargs['image_url'])
 
+            artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
             user.save()
 
             user.favourite_artists.set(artists)
 
             return CreateUserMutation(user=user)
-
-        else:
-            return CreateUserMutation(user=exisiting_user)
 
 
 class UpdateUserMutation(graphene.Mutation):
