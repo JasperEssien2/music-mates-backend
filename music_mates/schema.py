@@ -56,16 +56,21 @@ class UserMutation(graphene.Mutation):
 
     @classmethod
     def mutate(cls, root, info, **kwargs):
-        artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
 
-        user = User(
-            name=kwargs['name'], google_id=kwargs['google_id'], image_url=kwargs['image_url'])
+        user = User.objects.get(google_id=kwargs['google_id'])
+        if user == None:
+            artists = Artist.objects.filter(pk__in=kwargs['favourite_artists'])
 
-        user.save()
+            user = User(
+                name=kwargs['name'], google_id=kwargs['google_id'], image_url=kwargs['image_url'])
 
-        user.favourite_artists.set(artists)
+            user.save()
 
-        return UserMutation(user=user)
+            user.favourite_artists.set(artists)
+
+            return UserMutation(user=user)
+        else:
+            return user
 
 
 class Mutation(graphene.ObjectType):
