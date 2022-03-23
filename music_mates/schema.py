@@ -4,13 +4,13 @@ from graphene_django import DjangoListField, DjangoObjectType
 
 from .models import Artist, User
 
-
+# Specifies the schema type [ArtistType] and declares its field
 class ArtistType(DjangoObjectType):
     class Meta:
         model = Artist
         fields = ("id", "name", "image_url", "description")
 
-
+# Specifies the schema type [UserType] and declares its field
 class UserType(DjangoObjectType):
     class Meta:
         model = User
@@ -20,29 +20,37 @@ class UserType(DjangoObjectType):
 
 class Query(graphene.ObjectType):
 
+     # GraphQL automatically changes this to a camel case name [allArtists]
     all_artists = DjangoListField(ArtistType)
 
+    # GraphQL automatically changes this to a camel case name [userFavouriteArtist]
+    # We also specify the args named [google_id], which we used in frontend code
     user_favourite_artist = graphene.List(
         ArtistType, args={'google_id': graphene.String()})
 
+    # This methods resolves the query by returning all artist in the database 
     def resolve_user_favourite_artist(root, info, google_id):
 
         return Artist.objects.filter(favourite_users__google_id=google_id)
-
+ 
     user_info = graphene.Field(UserType, google_id=graphene.String())
 
+    # This methods resolves the userInfo query by quering the database for a user object with the googleId 
     def resolve_user_info(root, info, google_id):
         return User.objects.get(google_id=google_id)
 
     music_mates = graphene.List(
         UserType, args={'google_id': graphene.String()})
 
+    # This methods resolves the musicMates query by quering the database for users 
+    # that shares favourite artists with the user with this googleId 
     def resolve_music_mates(root, info, google_id):
         favourite_artist = Artist.objects.filter(
             favourite_users__google_id=google_id)
 
         return User.objects.filter(favourite_artists__in=favourite_artist).filter(~Q(google_id = google_id)).distinct()
 
+schema = graphene.Schema(query=Query, mutation=Mutation)
 
 class CreateUserMutation(graphene.Mutation):
 
